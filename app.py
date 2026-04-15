@@ -21,18 +21,46 @@ from sklearn.metrics import classification_report
 
 
 # In[3]:
-
-
-from flask import Flask
+from flask import Flask, request, jsonify
+import os
 
 app = Flask(__name__)
 
+# Global variables
+yolo_model = None
+tf_model = None
+models_loaded = False
+
+def load_models():
+    global yolo_model, tf_model, models_loaded
+    
+    if not models_loaded:
+        print("Loading models...")
+
+        from ultralytics import YOLO
+        import tensorflow as tf
+
+        yolo_model = YOLO("models/yolov8n.pt")
+        tf_model = tf.keras.models.load_model("models/light_model.h5")
+
+        models_loaded = True
+        print("Models loaded successfully!")
+
 @app.route("/")
 def home():
-    return "Hello Aman! Your project is live 🚀"
+    return "Driver Drowsiness Detection Running 🚀"
+
+@app.route("/predict", methods=["POST"])
+def predict():
+    load_models()
+    
+    return jsonify({
+        "message": "Prediction endpoint working"
+    })
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host="0.0.0.0", port=port)
 
 
 # In[3]:
